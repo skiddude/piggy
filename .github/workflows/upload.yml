@@ -22,7 +22,7 @@ jobs:
           ROBLOX_PLACE_ID: 9251013002
           # define the path to your .rbxl file
           # make sure this path is correct relative to your repository root
-          RBXL_FILE_PATH: v2.0.6__pacifist__kit.piggy_global_e2021b1.rbxl
+          RBXL_FILE_PATH: v2.0.6__pacifist__kit.piggy_.rbxl
         run: |
           # construct the URL for the Roblox Open Cloud API
           URL="https://apis.roblox.com/universes/v1/${{ env.ROBLOX_UNIVERSE_ID }}/places/${{ env.ROBLOX_PLACE_ID }}/versions?versionType=Published"
