@@ -1,0 +1,58 @@
+name: Deploy Roblox Place (Shell)
+
+on:
+  push:
+    branches:
+      - main # this workflow runs when you push to the 'main' branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest # use a linux runner
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4 # pulls your code into the runner
+
+      - name: Upload Roblox Place using Curl
+        env:
+          ROBLOX_API_KEY: ${{ secrets.ROBLOX_API_KEY }} # access your secret here
+          # define your roblox universe and place IDs as environment variables
+          # replace with your actual IDs
+          ROBLOX_UNIVERSE_ID: 3465856862
+          ROBLOX_PLACE_ID: 9251013002
+          # define the path to your .rbxl file
+          # make sure this path is correct relative to your repository root
+          RBXL_FILE_PATH: v2.0.6__pacifist__kit.piggy_global_e2021b1.rbxl
+        run: |
+          # construct the URL for the Roblox Open Cloud API
+          URL="https://apis.roblox.com/universes/v1/${{ env.ROBLOX_UNIVERSE_ID }}/places/${{ env.ROBLOX_PLACE_ID }}/versions?versionType=Published"
+
+          echo "starting upload of ${{ env.RBXL_FILE_PATH }} to place ${{ env.ROBLOX_PLACE_ID }} in universe ${{ env.ROBLOX_UNIVERSE_ID }}"
+
+          # use curl to send the POST request
+          # -X POST: specifies a POST request
+          # -H "x-api-key: ...": sets the API key header
+          # -H "Content-Type: application/octet-stream": sets the content type header
+          # --data-binary @file_path: tells curl to read the binary data from the specified file
+          response=$(curl -X POST \
+            -H "x-api-key: ${{ env.ROBLOX_API_KEY }}" \
+            -H "Content-Type: application/octet-stream" \
+            --data-binary "@${{ env.RBXL_FILE_PATH }}" \
+            "$URL")
+
+          # check curl's exit code for basic success/failure
+          if [ $? -eq 0 ]; then
+            echo "curl command completed. checking response..."
+            echo "response: $response"
+            # you might want to add more robust error checking here
+            # for example, check if the response body contains "versionNumber"
+            if echo "$response" | grep -q "versionNumber"; then
+              echo "successfully published place!"
+            else
+              echo "failed to publish place: response indicates error."
+              exit 1 # fail the job
+            fi
+          else
+            echo "curl command failed."
+            exit 1 # fail the job
+          fi
